@@ -39,7 +39,6 @@ object FileFilters {
 
         // 4. Verificar se está dentro de diretório excluído
         val relativePath = file.path.removePrefix(projectBasePath).trimStart('/', '\\')
-        
         val pathSegments = relativePath.split('/', '\\')
         if (pathSegments.any { it in EXCLUDED_DIRS }) {
             return false
