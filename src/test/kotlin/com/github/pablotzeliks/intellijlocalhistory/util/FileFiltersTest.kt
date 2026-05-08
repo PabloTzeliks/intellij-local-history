@@ -8,16 +8,6 @@ import org.junit.Test
 class FileFiltersTest : BasePlatformTestCase() {
 
     fun testShouldRejectFilesInExcludedDirectories() {
-<<<<<<< HEAD
-=======
-        // We use LightVirtualFile to simulate files.
-        // However, LightVirtualFile doesn't have a path that contains the projectBasePath in the same way 
-        // a physical file does unless we simulate it.
-        // Since FileFilters just removes projectBasePath from file.path, we can simulate the file.path behavior 
-        // by creating an object that extends LightVirtualFile or just mocking if necessary.
-        // Let's create a custom VirtualFile that returns a specific path.
-        
->>>>>>> 7cef3ba2fe40ffc48b2275abf5867cf4fafe357f
         val projectPath = "/fake/project"
         
         val ideaFile = object : LightVirtualFile("workspace.xml") {
@@ -34,14 +24,11 @@ class FileFiltersTest : BasePlatformTestCase() {
             override fun getPath(): String = "/fake/project/.history/src/Snapshot.java"
         }
         assertFalse(FileFilters.shouldCapture(historyFile, projectPath))
-<<<<<<< HEAD
 
         val nestedNodeModules = object : LightVirtualFile("index.js") {
             override fun getPath(): String = "/fake/project/frontend/node_modules/index.js"
         }
         assertFalse(FileFilters.shouldCapture(nestedNodeModules, projectPath))
-=======
->>>>>>> 7cef3ba2fe40ffc48b2275abf5867cf4fafe357f
     }
 
     fun testShouldAcceptNormalSourceFiles() {
