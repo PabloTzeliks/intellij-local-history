@@ -43,8 +43,10 @@
         São instanciados de forma lazy (só quando o evento ocorre).
         Aqui registraremos o listener de save na Fase 1.
     -->
-    <!-- <applicationListeners> -->
-    <!-- </applicationListeners> -->
+    <applicationListeners>
+        <listener class="com.github.pablotzeliks.intellijlocalhistory.listener.DocumentSaveListener"
+                  topic="com.intellij.openapi.fileEditor.FileDocumentManagerListener"/>
+    </applicationListeners>
 
     <!--
         extensions: componentes que estendem a funcionalidade da IDE.
