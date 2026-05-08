@@ -1,20 +1,20 @@
 package com.github.pablotzeliks.intellijlocalhistory.util
 
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 object SnapshotGuard {
-    private val restoring = AtomicBoolean(false)
+    private val restoringCount = AtomicInteger(0)
 
     /** Retorna true se o plugin está no meio de uma operação de restore */
-    fun isActive(): Boolean = restoring.get()
+    fun isActive(): Boolean = restoringCount.get() > 0
 
     /** Executa um bloco com o guard ativo — qualquer save durante este bloco é ignorado */
     fun <T> withGuard(block: () -> T): T {
-        restoring.set(true)
+        restoringCount.incrementAndGet()
         try {
             return block()
         } finally {
-            restoring.set(false)
+            restoringCount.decrementAndGet()
         }
     }
 }

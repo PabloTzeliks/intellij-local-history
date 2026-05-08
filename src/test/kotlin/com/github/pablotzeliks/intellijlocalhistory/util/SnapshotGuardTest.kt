@@ -37,4 +37,17 @@ class SnapshotGuardTest {
         val result = SnapshotGuard.withGuard { 42 }
         assertEquals(42, result)
     }
+
+    @Test
+    fun `guard stays active during nested withGuard blocks`() {
+        SnapshotGuard.withGuard {
+            assertTrue(SnapshotGuard.isActive())
+            SnapshotGuard.withGuard {
+                assertTrue(SnapshotGuard.isActive())
+            }
+            // Should still be active after the inner block finishes
+            assertTrue(SnapshotGuard.isActive())
+        }
+        assertFalse(SnapshotGuard.isActive())
+    }
 }
