@@ -5,7 +5,7 @@ import com.intellij.openapi.vfs.VirtualFile
 object FileFilters {
 
     /** Tamanho máximo de arquivo para capturar (2MB) */
-    private const val MAX_FILE_SIZE: Long = 2 * 1024 * 1024
+    const val MAX_FILE_SIZE: Long = 2 * 1024 * 1024
 
     /** Diretórios cujos arquivos são SEMPRE ignorados */
     private val EXCLUDED_DIRS = listOf(
