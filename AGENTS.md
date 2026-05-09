@@ -58,7 +58,7 @@ A Event Dispatch Thread (EDT) é a thread de UI do IntelliJ. Qualquer operação
 - **Leitura de VFS** em background → usar `readAction { }`
 
 ### 2. Prevenção de Loop Infinito
-Quando o plugin **restaura** um arquivo (escrevendo conteúdo de volta), isso dispara o listener de save novamente. O `SnapshotGuard` (AtomicBoolean) bloqueia re-entradas.
+Quando o plugin **restaura** um arquivo (escrevendo conteúdo de volta), isso dispara o listener de save novamente. O `SnapshotGuard` (AtomicInteger) bloqueia re-entradas.
 
 Adicionalmente, **qualquer arquivo cujo path contenha `.history/`** é ignorado pelo listener.
 

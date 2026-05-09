@@ -19,13 +19,14 @@ Usa `Files.list` para listar snapshots de um arquivo, parseia o timestamp do nom
 
 ### `service/SnapshotService.kt`
 Serviço `@Service(Service.Level.PROJECT)` que orquestra:
+- Recebe o `CoroutineScope` nativo via construtor para evitar memory leaks.
 - Recebe `SnapshotRequest` do listener (Fase 1).
 - Faz o debounce (ex: usando um `Map<String, Job>` cancelando o anterior).
-- Calcula o SHA-256 e compara com o último.
+- Calcula o SHA-256 e compara com o último. Mantém um cache em memória (`ConcurrentHashMap<String, String>`) do último hash por arquivo para evitar leitura de disco a cada save.
 - Delega para o `SnapshotWriter`.
 
 ### `service/GitignoreService.kt`
-Lê o `.gitignore` na raiz do projeto e anexa `.history/` se não existir.
+Lê o `.gitignore` na raiz do projeto e anexa `.history/` se não existir. **Deve usar a API VFS (`VirtualFile` + `writeAction`)** em vez de `java.nio.file` para que a aba de Git da IDE detecte a mudança instantaneamente.
 
 ## Integração
 O `DocumentSaveListener` (da Fase 1) passa a chamar `project.service<SnapshotService>().enqueue(request)` em vez de apenas logar.
