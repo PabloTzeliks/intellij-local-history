@@ -50,11 +50,28 @@
 
     <!--
         extensions: componentes que estendem a funcionalidade da IDE.
-        Tool Windows, Configuráveis (Settings), etc.
-        Serão adicionados nas Fases 2-5.
+        Tool Windows, Configuráveis (Settings), Services, etc.
+        Fases 2-3 completas; Fases 4-5 ainda serão adicionadas.
     -->
     <extensions defaultExtensionNs="com.intellij">
         <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.SnapshotService"/>
         <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.GitignoreService"/>
+        <!-- Fornece CoroutineScope gerenciado para os componentes de UI (Fase 3) -->
+        <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryUiScopeService"/>
+        
+        <toolWindow id="Local History"
+                    anchor="bottom"
+                    secondary="false"
+                    canCloseContents="false"
+                    factoryClass="com.github.pablotzeliks.intellijlocalhistory.ui.LocalHistoryToolWindowFactory"
+                    icon="/icons/localHistory.svg"/>
     </extensions>
+
+    <actions>
+        <action id="LocalHistory.CompareWithCurrent"
+                class="com.github.pablotzeliks.intellijlocalhistory.action.CompareWithCurrentAction"
+                text="Compare with Current"
+                description="Opens diff between selected snapshot and the current file">
+        </action>
+    </actions>
 </idea-plugin>
