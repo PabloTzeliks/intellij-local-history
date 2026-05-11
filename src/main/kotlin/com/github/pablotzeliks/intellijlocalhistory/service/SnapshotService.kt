@@ -14,6 +14,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
+import com.intellij.util.messages.Topic
+
+interface SnapshotListener {
+    fun onSnapshotAdded(relativePath: String)
+    companion object {
+        val TOPIC = Topic.create("LocalHistorySnapshotAdded", SnapshotListener::class.java)
+    }
+}
 
 @Service(Service.Level.PROJECT)
 class SnapshotService(
@@ -81,6 +89,7 @@ class SnapshotService(
             project.service<GitignoreService>().ensureHistoryIgnored()
 
             thisLogger().info("Local History: snapshot saved for '${request.relativePath}'")
+            project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(request.relativePath)
         } catch (e: Exception) {
             thisLogger().warn("Local History: failed to write snapshot for '${request.relativePath}'", e)
         }

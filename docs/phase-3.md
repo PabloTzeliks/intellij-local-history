@@ -284,5 +284,25 @@ Após implementar tudo:
 - ❌ NÃO fazer I/O de disco na EDT — todo acesso ao `SnapshotReader` deve estar em `Dispatchers.IO`
 - ❌ NÃO criar `CoroutineScope` manualmente — usar `project.coroutineScope`
 - ❌ NÃO conectar o `FileEditorManagerListener` ao `project.messageBus` diretamente sem disposable — causa memory leak ao fechar o projeto com a Tool Window aberta
-- ❌ NÃO omitir o ícone SVG — o registro no `plugin.xml` sem ícone causa erro em runtime
 - ❌ NÃO atualizar componentes Swing fora da EDT
+
+---
+
+## Problemas Conhecidos e Soluções (Troubleshooting)
+
+Durante o desenvolvimento e testes desta fase, foram identificados e resolvidos os seguintes problemas estruturais:
+
+### 1. Erro fatal nas Coroutines (Debug metadata version mismatch)
+**Sintoma:** Ao tentar renderizar a lista de snapshots na Tool Window, a interface ficava presa em "Loading history..." e a IDE disparava um *IDE Fatal Error* com a mensagem: `java.lang.IllegalStateException: Debug metadata version mismatch. Expected: 1, got 2. Please update the Kotlin standard library.`
+**Causa:** Incompatibilidade entre a versão do Kotlin usada para compilar o plugin (que gerava metadados V2) e a versão do `kotlinx-coroutines-core` embutida no depurador da IDE Sandbox (que esperava metadados V1).
+**Solução:**
+- A versão do plugin Kotlin em `settings.gradle.kts` foi ajustada para `2.1.10` para parear perfeitamente com o código da plataforma IntelliJ (2025.2).
+- O depurador de coroutines nativo do IntelliJ (`DebugProbes`) foi desabilitado durante a task `runIde` inserindo `jvmArgs("-Dkotlinx.coroutines.debug=off")` no `build.gradle.kts`, prevenindo a falha ao tentar recuperar a stack trace.
+
+### 2. Atraso na exibição das atualizações (Falta de Real-time Refresh)
+**Sintoma:** Os arquivos eram salvos e o snapshot era criado imediatamente no disco, porém o painel do "Local History" demorava cerca de 1 minuto para mostrar as novidades, e só atualizava instantaneamente ao mudar de arquivo.
+**Causa:** Pela especificação original, a atualização só ocorria via `FileEditorManagerListener.selectionChanged`. A interface ficava estática esperando que algum evento da IDE forçasse a recarga, não sendo notificada diretamente sobre o evento de save. O suposto atraso de 1 minuto coincidia com sincronizações ocultas de background da IDE.
+**Solução:**
+- Foi criado o `SnapshotListener`, uma interface registrada como um Topic no MessageBus (`LocalHistorySnapshotAdded`).
+- O `SnapshotService` passou a invocar `syncPublisher` disparando o evento assim que a escrita do arquivo em disco termina.
+- O `LocalHistoryToolWindowFactory` passou a assinar esse evento e disparar `panel.refresh()` (sempre dentro da EDT, usando `ApplicationManager.getApplication().invokeLater { }`) caso o arquivo ativo seja o mesmo que acabou de sofrer snapshot.
