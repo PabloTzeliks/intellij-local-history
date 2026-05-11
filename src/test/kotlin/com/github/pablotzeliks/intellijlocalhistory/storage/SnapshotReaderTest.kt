@@ -13,10 +13,14 @@ class SnapshotReaderTest {
     val tempDir = TemporaryFolder()
 
     private fun writeSnapshot(relativePath: String, timestamp: LocalDateTime, content: String = "x") {
+        val fileNameWithExtension = relativePath.substringAfterLast('/')
+        val hasExtension = fileNameWithExtension.contains('.') && 
+                           fileNameWithExtension.substringAfterLast('.') != fileNameWithExtension
+        
         val request = SnapshotRequest(
             relativePath = relativePath,
-            fileName = relativePath.substringAfterLast('/').substringBeforeLast('.'),
-            fileExtension = ".${relativePath.substringAfterLast('.')}",
+            fileName = if (hasExtension) fileNameWithExtension.substringBeforeLast('.') else fileNameWithExtension,
+            fileExtension = if (hasExtension) ".${fileNameWithExtension.substringAfterLast('.')}" else "",
             content = content,
             timestamp = timestamp,
             projectBasePath = tempDir.root.absolutePath
@@ -91,9 +95,9 @@ class SnapshotReaderTest {
 
     @Test
     fun `listSnapshots silently ignores files with invalid timestamp in name`() {
-        // Manually create a file with a non-parseable name in the .history dir
+        // Usa um nome que passa no matchesSnapshot (14 dígitos) mas falha no parseEntry (mês 13)
         val historyDir = tempDir.newFolder(".history", "src")
-        historyDir.resolve("Main_NOTADATE14.kt").writeText("invalid")
+        historyDir.resolve("Main_20261301000000.kt").writeText("invalid")
 
         val result = SnapshotReader.listSnapshots("src/Main.kt", tempDir.root.absolutePath)
         assertTrue("Invalid snapshot filename should be silently ignored", result.isEmpty())

@@ -14,6 +14,8 @@ class GitignoreService(private val project: Project) {
         private const val HISTORY_ENTRY = ".history/"
     }
 
+    private var gitignoreEnsured = false
+
     /**
      * Verifica se `.history/` já está no `.gitignore` da raiz do projeto.
      * Se não estiver, anexa a entrada. Operação idempotente.
@@ -23,12 +25,13 @@ class GitignoreService(private val project: Project) {
      * aguarda a EDT estar livre para executar.
      */
     fun ensureHistoryIgnored() {
+        if (gitignoreEnsured) return
+
         val projectDir = project.guessProjectDir() ?: return
 
-        // Tenta encontrar ou criar .gitignore via VFS
-        val gitignoreVFile = projectDir.findChild(".gitignore")
-
         WriteAction.runAndWait<Throwable> {
+            val gitignoreVFile = projectDir.findChild(".gitignore")
+
             if (gitignoreVFile == null) {
                 // Cria .gitignore com a entrada
                 val newFile = projectDir.createChildData(this, ".gitignore")
@@ -42,6 +45,7 @@ class GitignoreService(private val project: Project) {
             }
         }
 
+        gitignoreEnsured = true
         thisLogger().info("Local History: .gitignore updated with $HISTORY_ENTRY")
     }
 }

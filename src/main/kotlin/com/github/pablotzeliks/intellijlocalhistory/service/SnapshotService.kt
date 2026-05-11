@@ -1,6 +1,7 @@
 package com.github.pablotzeliks.intellijlocalhistory.service
 
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotRequest
+import com.github.pablotzeliks.intellijlocalhistory.storage.SnapshotReader
 import com.github.pablotzeliks.intellijlocalhistory.storage.SnapshotWriter
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -49,21 +50,32 @@ class SnapshotService(
     private fun processSnapshot(request: SnapshotRequest) {
         val newHash = sha256(request.content)
 
-        // Deduplicação: mesmo conteúdo → não escreve
+        // Deduplicação: cache em memória
         if (lastHashByPath[request.relativePath] == newHash) {
             thisLogger().debug("Local History: skipping duplicate snapshot for '${request.relativePath}'")
             return
         }
 
+        // Deduplicação cross-session: ler o hash do último snapshot salvo no disco (se não estiver na memória)
+        if (!lastHashByPath.containsKey(request.relativePath)) {
+            val snapshots = SnapshotReader.listSnapshots(request.relativePath, request.projectBasePath)
+            if (snapshots.isNotEmpty()) {
+                val latestContent = SnapshotReader.readContent(snapshots.first())
+                val latestHash = sha256(latestContent)
+                if (latestHash == newHash) {
+                    lastHashByPath[request.relativePath] = newHash // Atualiza cache em memória
+                    thisLogger().debug("Local History: skipping duplicate snapshot for '${request.relativePath}' (cross-session)")
+                    return
+                }
+            }
+        }
+
         try {
-            // Na primeira escrita, atualiza o .gitignore
-            val isFirstWrite = !lastHashByPath.containsKey(request.relativePath)
             SnapshotWriter.write(request)
             lastHashByPath[request.relativePath] = newHash
 
-            if (isFirstWrite) {
-                project.service<GitignoreService>().ensureHistoryIgnored()
-            }
+            // GitignoreService já possui controle interno para rodar apenas uma vez
+            project.service<GitignoreService>().ensureHistoryIgnored()
 
             thisLogger().info("Local History: snapshot saved for '${request.relativePath}'")
         } catch (e: Exception) {
