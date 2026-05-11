@@ -40,11 +40,14 @@ class SnapshotService(
         // Cancela qualquer job pendente para este arquivo
         debounceJobs[request.relativePath]?.cancel()
 
-        debounceJobs[request.relativePath] = cs.launch(Dispatchers.IO) {
+        val job = cs.launch(Dispatchers.IO) {
             delay(DEBOUNCE_DELAY_MS)
             processSnapshot(request)
-            debounceJobs.remove(request.relativePath)  // cleanup após completar
+            // remove(key, value) é atômico: só remove se o job atual ainda for este mesmo.
+            // Previne que um job concluído apague um job mais novo que chegou no mesmo instante.
+            debounceJobs.remove(request.relativePath, coroutineContext[kotlinx.coroutines.Job])
         }
+        debounceJobs[request.relativePath] = job
     }
 
     private fun processSnapshot(request: SnapshotRequest) {
