@@ -1,14 +1,16 @@
 package com.github.pablotzeliks.intellijlocalhistory.listener
 
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotRequest
+import com.github.pablotzeliks.intellijlocalhistory.service.SnapshotService
 import com.github.pablotzeliks.intellijlocalhistory.util.FileFilters
 import com.github.pablotzeliks.intellijlocalhistory.util.SnapshotGuard
-import com.intellij.openapi.diagnostic.thisLogger
+import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.project.guessProjectDir
+import com.intellij.openapi.vfs.VfsUtilCore
 import java.time.LocalDateTime
 
 class DocumentSaveListener : FileDocumentManagerListener {
@@ -35,8 +37,8 @@ class DocumentSaveListener : FileDocumentManagerListener {
         // 5. Filtro adicional de tamanho em memória (impede congelamento da EDT ao ler document.text gigante)
         if (document.textLength > FileFilters.MAX_FILE_SIZE) return
 
-        // 5. Montar o SnapshotRequest com os dados necessários
-        val relativePath = com.intellij.openapi.vfs.VfsUtilCore.getRelativePath(file, projectDir) ?: return
+        // 6. Montar o SnapshotRequest com os dados necessários
+        val relativePath = VfsUtilCore.getRelativePath(file, projectDir) ?: return
         val nameWithoutExtension = file.nameWithoutExtension
         val extension = if (file.extension != null) ".${file.extension}" else ""
 
@@ -49,7 +51,6 @@ class DocumentSaveListener : FileDocumentManagerListener {
             projectBasePath = projectDir.path
         )
 
-        // 6. Por enquanto, apenas logar (Fase 2 conectará ao SnapshotService)
-        thisLogger().info("Local History: captured save of '$relativePath' (${document.textLength} chars)")
+        project.service<SnapshotService>().enqueue(request)
     }
 }

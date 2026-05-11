@@ -54,5 +54,7 @@
         Serão adicionados nas Fases 2-5.
     -->
     <extensions defaultExtensionNs="com.intellij">
+        <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.SnapshotService"/>
+        <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.GitignoreService"/>
     </extensions>
 </idea-plugin>
