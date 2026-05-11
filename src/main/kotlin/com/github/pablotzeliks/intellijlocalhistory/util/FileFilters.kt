@@ -38,6 +38,8 @@ object FileFilters {
         if (file.length > MAX_FILE_SIZE) return false
 
         // 4. Verificar se está dentro de diretório excluído
+        // Primeiro garantir que o arquivo pertence ao projeto (evita falso-positivo em paths absolutos)
+        if (!file.path.startsWith(projectBasePath)) return false
         val relativePath = file.path.removePrefix(projectBasePath).trimStart('/', '\\')
         val pathSegments = relativePath.split('/', '\\')
         if (pathSegments.any { it in EXCLUDED_DIRS }) {
