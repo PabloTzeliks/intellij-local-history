@@ -36,16 +36,19 @@ class GitignoreService(private val project: Project) {
                 // Cria .gitignore com a entrada
                 val newFile = projectDir.createChildData(this, ".gitignore")
                 VfsUtil.saveText(newFile, "$HISTORY_ENTRY\n")
+                thisLogger().info("Local History: .gitignore created with $HISTORY_ENTRY")
             } else {
                 val current = VfsUtil.loadText(gitignoreVFile)
                 if (!current.lines().any { it.trim() == HISTORY_ENTRY.trim() }) {
                     val separator = if (current.endsWith("\n")) "" else "\n"
                     VfsUtil.saveText(gitignoreVFile, "$current$separator$HISTORY_ENTRY\n")
+                    thisLogger().info("Local History: .gitignore updated with $HISTORY_ENTRY")
+                } else {
+                    thisLogger().debug("Local History: .gitignore already contains $HISTORY_ENTRY")
                 }
             }
         }
 
         gitignoreEnsured = true
-        thisLogger().info("Local History: .gitignore updated with $HISTORY_ENTRY")
     }
 }

@@ -18,14 +18,19 @@ class SnapshotWriterTest {
         relativePath: String = "src/Main.kt",
         content: String = "fun main() {}",
         timestamp: LocalDateTime = LocalDateTime.of(2026, 5, 8, 15, 6, 19)
-    ) = SnapshotRequest(
-        relativePath = relativePath,
-        fileName = relativePath.substringAfterLast('/').substringBeforeLast('.'),
-        fileExtension = ".${relativePath.substringAfterLast('.')}",
-        content = content,
-        timestamp = timestamp,
-        projectBasePath = tempDir.root.absolutePath
-    )
+    ): SnapshotRequest {
+        val fileNameWithExt = relativePath.substringAfterLast('/')
+        val hasExt = fileNameWithExt.contains('.') && fileNameWithExt.substringAfterLast('.') != fileNameWithExt
+
+        return SnapshotRequest(
+            relativePath = relativePath,
+            fileName = if (hasExt) fileNameWithExt.substringBeforeLast('.') else fileNameWithExt,
+            fileExtension = if (hasExt) ".${fileNameWithExt.substringAfterLast('.')}" else "",
+            content = content,
+            timestamp = timestamp,
+            projectBasePath = tempDir.root.absolutePath
+        )
+    }
 
     @Test
     fun `write creates snapshot file in correct location`() {
