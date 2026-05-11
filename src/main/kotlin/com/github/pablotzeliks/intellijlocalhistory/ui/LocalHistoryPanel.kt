@@ -4,6 +4,7 @@ import com.github.pablotzeliks.intellijlocalhistory.LocalHistoryBundle
 import com.github.pablotzeliks.intellijlocalhistory.action.CompareWithCurrentAction
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotEntry
 import com.github.pablotzeliks.intellijlocalhistory.storage.SnapshotReader
+import com.github.pablotzeliks.intellijlocalhistory.util.DateFormats
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -26,7 +27,6 @@ import java.awt.BorderLayout
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.text.DecimalFormat
-import java.time.format.DateTimeFormatter
 import javax.swing.DefaultListModel
 import javax.swing.JList
 import javax.swing.JPanel
@@ -112,7 +112,12 @@ class LocalHistoryPanel(
             val entries = SnapshotReader.listSnapshots(relativePath, projectDir.path)
             // TODO: Phase 5 — limitar número de entradas com base em LocalHistorySettings
 
+            // Capturar o estado de cancelamento antes de mudar de contexto.
+            // coroutineContext.isActive é a forma correta de verificar dentro de um bloco launch.
+            val stillActive = coroutineContext[kotlinx.coroutines.Job]?.isActive != false
+
             withContext(Dispatchers.Main) {
+                if (!stillActive) return@withContext
                 listModel.clear()
                 if (entries.isEmpty()) {
                     snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
@@ -147,7 +152,7 @@ class LocalHistoryPanel(
 
             icon = AllIcons.FileTypes.Text
 
-            val dateStr = value.timestamp.format(DATE_FORMATTER)
+            val dateStr = value.timestamp.format(DateFormats.DISPLAY_FORMATTER)
             append(dateStr, SimpleTextAttributes.REGULAR_ATTRIBUTES)
 
             val sizeStr = formatSize(value.lengthBytes)
@@ -166,11 +171,7 @@ class LocalHistoryPanel(
     }
 
     companion object {
-        /**
-         * Formato de data exibido em cada item da lista.
-         * TODO: Phase 5 — ler de LocalHistorySettings
-         */
-        private val DATE_FORMATTER: DateTimeFormatter =
-            DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+        // Formatter centralizado em DateFormats — removido daqui para evitar duplicidade.
+        // A referência é feita diretamente via DateFormats.DISPLAY_FORMATTER.
     }
 }

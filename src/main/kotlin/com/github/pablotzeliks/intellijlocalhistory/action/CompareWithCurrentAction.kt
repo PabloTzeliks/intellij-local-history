@@ -4,6 +4,7 @@ import com.github.pablotzeliks.intellijlocalhistory.LocalHistoryBundle
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotEntry
 import com.github.pablotzeliks.intellijlocalhistory.storage.SnapshotReader
 import com.github.pablotzeliks.intellijlocalhistory.ui.LocalHistoryPanel
+import com.github.pablotzeliks.intellijlocalhistory.util.DateFormats
 import com.intellij.diff.DiffContentFactory
 import com.intellij.diff.DiffDialogHints
 import com.intellij.diff.DiffManager
@@ -15,7 +16,6 @@ import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowManager
-import java.time.format.DateTimeFormatter
 
 class CompareWithCurrentAction : AnAction(
     LocalHistoryBundle.messagePointer("action.compare"),
@@ -47,8 +47,6 @@ class CompareWithCurrentAction : AnAction(
     }
 
     companion object {
-        private val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss") // TODO: Phase 5 - read from LocalHistorySettings
-
         fun showDiff(project: Project, entry: SnapshotEntry, currentFile: VirtualFile) {
             try {
                 // Ler conteúdo do snapshot (I/O). Como abrir o diff é uma ação iniciada pelo usuário, 
@@ -61,7 +59,7 @@ class CompareWithCurrentAction : AnAction(
                 val rightContent = diffContentFactory.create(project, document)
 
                 val title = "Local History \u2014 ${currentFile.name}"
-                val leftTitle = "Snapshot (${entry.timestamp.format(formatter)})"
+                val leftTitle = "Snapshot (${entry.timestamp.format(DateFormats.DISPLAY_FORMATTER)})"
                 val rightTitle = "Current"
 
                 val request = SimpleDiffRequest(title, leftContent, rightContent, leftTitle, rightTitle)
