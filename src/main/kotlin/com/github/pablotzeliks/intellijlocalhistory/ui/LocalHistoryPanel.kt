@@ -102,22 +102,23 @@ class LocalHistoryPanel(
             return
         }
 
+        // VFS lookups on EDT — safe, avoids threading assertions in 2025.2+
+        val projectDir = project.guessProjectDir()
+        val relativePath = projectDir?.let { VfsUtilCore.getRelativePath(virtualFile, it) }
+
+        if (projectDir == null || relativePath == null) {
+            listModel.clear()
+            snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
+            return
+        }
+
+        val basePath = projectDir.path
+
         snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.loading")
         listModel.clear()
 
         loadingJob = cs.launch(Dispatchers.IO) {
-            val projectDir = project.guessProjectDir()
-            val relativePath = projectDir?.let { VfsUtilCore.getRelativePath(virtualFile, it) }
-
-            if (projectDir == null || relativePath == null) {
-                withContext(Dispatchers.Main) {
-                    listModel.clear()
-                    snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
-                }
-                return@launch
-            }
-
-            val entries = SnapshotReader.listSnapshots(relativePath, projectDir.path)
+            val entries = SnapshotReader.listSnapshots(relativePath, basePath)
             // TODO: Phase 5 — limitar número de entradas com base em LocalHistorySettings
 
             withContext(Dispatchers.Main) {

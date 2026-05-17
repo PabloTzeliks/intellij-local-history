@@ -11,7 +11,6 @@ import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowFactory
-import com.intellij.openapi.application.ApplicationManager
 import com.github.pablotzeliks.intellijlocalhistory.service.SnapshotListener
 
 class LocalHistoryToolWindowFactory : ToolWindowFactory, DumbAware {
@@ -44,9 +43,7 @@ class LocalHistoryToolWindowFactory : ToolWindowFactory, DumbAware {
                     val activeDir = project.guessProjectDir() ?: return
                     val activeRelative = VfsUtilCore.getRelativePath(activeFile, activeDir)
                     if (activeRelative == relativePath) {
-                        ApplicationManager.getApplication().invokeLater {
-                            panel.refresh()
-                        }
+                        panel.refresh()
                     }
                 }
             }
