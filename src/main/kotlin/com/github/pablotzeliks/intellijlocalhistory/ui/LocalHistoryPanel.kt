@@ -18,6 +18,7 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.openapi.application.EDT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -121,7 +122,7 @@ class LocalHistoryPanel(
             val entries = SnapshotReader.listSnapshots(relativePath, basePath)
             // TODO: Phase 5 — limitar número de entradas com base em LocalHistorySettings
 
-            withContext(Dispatchers.Main) {
+            withContext(Dispatchers.EDT) {
                 listModel.clear()
                 if (entries.isEmpty()) {
                     snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
