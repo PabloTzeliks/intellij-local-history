@@ -15,3 +15,9 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 }
+
+tasks {
+    runIde {
+        jvmArgs("-Dkotlinx.coroutines.debug=off")
+    }
+}

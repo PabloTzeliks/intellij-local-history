@@ -6,6 +6,7 @@ import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.vfs.VfsUtil
+import java.util.concurrent.atomic.AtomicBoolean
 
 @Service(Service.Level.PROJECT)
 class GitignoreService(private val project: Project) {
@@ -14,7 +15,9 @@ class GitignoreService(private val project: Project) {
         private const val HISTORY_ENTRY = ".history/"
     }
 
-    private var gitignoreEnsured = false
+    // AtomicBoolean garante que apenas uma thread executa a escrita,
+    // mesmo com saves simultâneos de arquivos diferentes em Dispatchers.IO
+    private val gitignoreEnsured = AtomicBoolean(false)
 
     /**
      * Verifica se `.history/` já está no `.gitignore` da raiz do projeto.
@@ -25,7 +28,9 @@ class GitignoreService(private val project: Project) {
      * aguarda a EDT estar livre para executar.
      */
     fun ensureHistoryIgnored() {
-        if (gitignoreEnsured) return
+        // compareAndSet(false, true) retorna true apenas para a primeira thread que chegar
+        // Threads subsequentes vêem true e retornam imediatamente, sem lock
+        if (!gitignoreEnsured.compareAndSet(false, true)) return
 
         val projectDir = project.guessProjectDir() ?: return
 
@@ -49,6 +54,6 @@ class GitignoreService(private val project: Project) {
             }
         }
 
-        gitignoreEnsured = true
+        // gitignoreEnsured já foi setado atomicamente no início — não reatribuir aqui
     }
 }

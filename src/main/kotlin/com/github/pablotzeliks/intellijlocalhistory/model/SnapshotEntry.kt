@@ -6,5 +6,6 @@ import java.time.LocalDateTime
 data class SnapshotEntry(
     val file: File,
     val timestamp: LocalDateTime,
-    val originalRelativePath: String
+    val originalRelativePath: String,
+    val lengthBytes: Long = file.length()
 )

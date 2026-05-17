@@ -4,6 +4,7 @@
 
 Implementar a captura de eventos de salvamento de arquivo na IDE.
 Ao final desta fase, o plugin deve:
+
 - Detectar quando qualquer arquivo do projeto é salvo
 - Filtrar arquivos que NÃO devem ser capturados (binários, grandes, diretórios excluídos)
 - Prevenir loops infinitos via guard
@@ -46,6 +47,7 @@ data class SnapshotRequest(
 ```
 
 **Regras:**
+
 - Usar `java.time.LocalDateTime` para o timestamp
 - Todos os campos são `val` (imutável)
 - Não colocar lógica de negócio aqui
@@ -80,6 +82,7 @@ object SnapshotGuard {
 ```
 
 **Regras:**
+
 - Usar `java.util.concurrent.atomic.AtomicBoolean` (thread-safe)
 - `object` = singleton em Kotlin (uma única instância)
 - O `finally` garante que o guard é desativado mesmo se der exceção
@@ -142,6 +145,7 @@ object FileFilters {
 ```
 
 **Regras:**
+
 - Imports necessários: `com.intellij.openapi.vfs.VirtualFile`
 - O path do `VirtualFile` usa `/` como separador (mesmo no Windows)
 - `file.fileType.isBinary` é a API do IntelliJ para detectar binários
@@ -198,6 +202,7 @@ class DocumentSaveListener : FileDocumentManagerListener {
 ```
 
 **Regras:**
+
 - Imports necessários:
   - `com.intellij.openapi.editor.Document`
   - `com.intellij.openapi.fileEditor.FileDocumentManager`
@@ -226,6 +231,7 @@ Adicionar o bloco de listener DENTRO do `<idea-plugin>`, ANTES de `<extensions>`
 ```
 
 **Explicação:**
+
 - `applicationListeners` = listeners globais (não vinculados a um projeto específico)
 - `topic` = a interface que estamos implementando (define quais eventos recebemos)
 - A IDE instancia o listener de forma lazy (só quando o primeiro save acontece)
