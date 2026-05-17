@@ -106,18 +106,21 @@ class LocalHistoryPanel(
         listModel.clear()
 
         loadingJob = cs.launch(Dispatchers.IO) {
-            val projectDir = project.guessProjectDir() ?: return@launch
-            val relativePath = VfsUtilCore.getRelativePath(virtualFile, projectDir) ?: return@launch
+            val projectDir = project.guessProjectDir()
+            val relativePath = projectDir?.let { VfsUtilCore.getRelativePath(virtualFile, it) }
+
+            if (projectDir == null || relativePath == null) {
+                withContext(Dispatchers.Main) {
+                    listModel.clear()
+                    snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
+                }
+                return@launch
+            }
 
             val entries = SnapshotReader.listSnapshots(relativePath, projectDir.path)
             // TODO: Phase 5 — limitar número de entradas com base em LocalHistorySettings
 
-            // Capturar o estado de cancelamento antes de mudar de contexto.
-            // coroutineContext.isActive é a forma correta de verificar dentro de um bloco launch.
-            val stillActive = coroutineContext[kotlinx.coroutines.Job]?.isActive != false
-
             withContext(Dispatchers.Main) {
-                if (!stillActive) return@withContext
                 listModel.clear()
                 if (entries.isEmpty()) {
                     snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
