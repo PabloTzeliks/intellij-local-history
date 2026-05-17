@@ -70,8 +70,8 @@
     <actions>
         <action id="LocalHistory.CompareWithCurrent"
                 class="com.github.pablotzeliks.intellijlocalhistory.action.CompareWithCurrentAction"
-                text="Compare with Current"
-                description="Opens diff between selected snapshot and the current file">
+                text="%action.compare"
+                description="%action.compare.description">
         </action>
     </actions>
 </idea-plugin>
