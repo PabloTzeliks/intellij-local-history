@@ -1,6 +1,7 @@
 package com.github.pablotzeliks.intellijlocalhistory.util
 
 import com.intellij.openapi.vfs.VirtualFile
+import java.nio.file.Path
 
 object FileFilters {
 
@@ -38,9 +39,11 @@ object FileFilters {
         if (file.length > MAX_FILE_SIZE) return false
 
         // 4. Verificar se está dentro de diretório excluído
-        // Primeiro garantir que o arquivo pertence ao projeto (evita falso-positivo em paths absolutos)
-        if (!file.path.startsWith(projectBasePath)) return false
-        val relativePath = file.path.removePrefix(projectBasePath).trimStart('/', '\\')
+        // Path.startsWith garante ancestralidade real — evita falso-positivo de prefix (ex: /proj vs /proj2)
+        val base = Path.of(projectBasePath).normalize()
+        val filePath = Path.of(file.path).normalize()
+        if (!filePath.startsWith(base)) return false
+        val relativePath = base.relativize(filePath).toString()
         val pathSegments = relativePath.split('/', '\\')
         if (pathSegments.any { it in EXCLUDED_DIRS }) {
             return false
