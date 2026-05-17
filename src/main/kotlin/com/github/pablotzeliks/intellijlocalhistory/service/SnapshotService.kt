@@ -7,12 +7,12 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import com.intellij.util.messages.Topic
@@ -59,7 +59,7 @@ class SnapshotService(
         debounceJobs[request.relativePath] = job
     }
 
-    private suspend fun processSnapshot(request: SnapshotRequest) {
+    private fun processSnapshot(request: SnapshotRequest) {
         val newHash = sha256(request.content)
 
         // Deduplicação: cache em memória
@@ -90,8 +90,9 @@ class SnapshotService(
             project.service<GitignoreService>().ensureHistoryIgnored()
 
             thisLogger().info("Local History: snapshot saved for '${request.relativePath}'")
-            withContext(Dispatchers.Main) {
-                project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(request.relativePath)
+            val path = request.relativePath
+            ApplicationManager.getApplication().invokeLater {
+                project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(path)
             }
         } catch (e: Exception) {
             thisLogger().warn("Local History: failed to write snapshot for '${request.relativePath}'", e)
