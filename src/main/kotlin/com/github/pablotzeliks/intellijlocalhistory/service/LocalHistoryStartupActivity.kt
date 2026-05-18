@@ -1,6 +1,9 @@
 package com.github.pablotzeliks.intellijlocalhistory.service
 
+import com.github.pablotzeliks.intellijlocalhistory.listener.DocumentChangeListener
 import com.github.pablotzeliks.intellijlocalhistory.ui.LocalHistoryPanel
+import com.intellij.openapi.components.service
+import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.guessProjectDir
 import com.intellij.openapi.startup.ProjectActivity
@@ -10,6 +13,14 @@ import com.intellij.openapi.wm.ToolWindowManager
 class LocalHistoryStartupActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
+        // Registra o listener de mudanças de documento.
+        // O project como Disposable garante remoção automática ao fechar o projeto.
+        val cs = project.service<LocalHistoryUiScopeService>().scope
+        EditorFactory.getInstance().eventMulticaster.addDocumentListener(
+            DocumentChangeListener(project, cs),
+            project
+        )
+
         project.messageBus.connect(project).subscribe(
             SnapshotListener.TOPIC,
             object : SnapshotListener {

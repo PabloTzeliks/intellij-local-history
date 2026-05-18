@@ -42,6 +42,16 @@ class SnapshotService(
     }
 
     /**
+     * Captura imediatamente, sem debounce.
+     * Chamado pelo DocumentChangeListener após seu próprio debounce de inatividade/intervalo.
+     */
+    fun captureNow(request: SnapshotRequest) {
+        cs.launch(Dispatchers.IO) {
+            processSnapshot(request)
+        }
+    }
+
+    /**
      * Enfileira um snapshot para o [request] dado, com debounce de 1 segundo.
      * Chamado na EDT pelo DocumentSaveListener — retorna imediatamente.
      */
