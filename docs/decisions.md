@@ -161,6 +161,43 @@ Na primeira vez que `.history/` for criada, o plugin verifica se `.gitignore` ex
 
 ---
 
+## D-011: Captura por Mudança de Documento (DocumentChangeListener)
+
+**Data:** 2026-05-18  
+**Status:** ✅ Aprovada
+
+### Contexto
+O `DocumentSaveListener` (baseado em `FileDocumentManagerListener.beforeDocumentSaving`) depende do ciclo de save do IntelliJ para disparar. O IntelliJ controla quando faz flush para o disco — o Ctrl+S agenda o flush, não o executa imediatamente. Na prática, isso resultava em atrasos de ~30s com save explícito e ~3min sem save, tornando os snapshots insuficientes para análise de evolução de código (ex: detecção de padrões/cola em ambiente acadêmico).
+
+### Análise das Alternativas
+| Opção | Prós | Contras |
+|---|---|---|
+| Reduzir debounce do save listener | Mudança mínima | Não resolve: o atraso é na IDE, não no debounce |
+| Timer periódico fixo | Previsível, simples | Captura em intervalos de relógio, não de atividade |
+| **DocumentChangeListener** | Captura por atividade real; independe de save | Mais snapshots; captura estados intermediários |
+| Forçar `saveAllDocuments()` periodicamente | Zero mudança no pipeline | Interfere com formatters/linters on-save da IDE |
+
+### Decisão
+**`BulkAwareDocumentListener`** registrado via `EditorFactory.eventMulticaster.addDocumentListener(listener, project)`.
+
+- `BulkAwareDocumentListener` (em vez de `DocumentListener` puro) suprime eventos individuais durante operações bulk (refactor, paste grande) e entrega um único evento ao final — evita storm de resets no debounce.
+- Registro via `eventMulticaster` cobre todos os documentos do projeto sem duplicação (mesmo documento em 2 tabs = 1 evento).
+- `project` como `Disposable` garante remoção automática ao fechar o projeto (zero memory leak).
+- Leitura de `document.text` via `readAction { }` suspending (não bloqueia a thread IO).
+
+### Dual Debounce
+Um debounce simples de inatividade seria resetado indefinidamente durante digitação contínua, nunca gerando snapshots. A estratégia de dois timers resolve isso:
+
+- **Inactivity timer (30s):** reseta a cada keystroke → snapshot 30s após o último evento
+- **Max interval timer (60s):** inicia uma vez, não reseta → snapshot garantido durante typing contínuo
+
+Ambos os valores são candidatos a tornar-se configuráveis na Fase 5 (`LocalHistorySettings`).
+
+### Coexistência com DocumentSaveListener
+Os dois listeners operam em paralelo. O `DocumentSaveListener` mantém a captura rápida (<2s) em saves explícitos. Sobreposições são eliminadas pela deduplicação SHA-256 existente no `SnapshotService.processSnapshot()`.
+
+---
+
 ## D-010: Política de Retenção (Fase 5)
 
 **Data:** 2026-05-08  
