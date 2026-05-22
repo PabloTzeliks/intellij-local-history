@@ -85,6 +85,7 @@ class DocumentChangeListener(
             // Ao disparar por inatividade, o timer máximo já não é necessário
             maxIntervalJobs.remove(relativePath)?.cancel()
             doCapture(relativePath, fileName, fileExt, basePath, file, document)
+            inactivityJobs.remove(relativePath)
         }
 
         // Timer máximo: inicia uma vez e não é resetado por novas mudanças.
@@ -95,6 +96,7 @@ class DocumentChangeListener(
                 // Ao disparar por intervalo máximo, cancela o timer de inatividade pendente
                 inactivityJobs.remove(relativePath)?.cancel()
                 doCapture(relativePath, fileName, fileExt, basePath, file, document)
+                maxIntervalJobs.remove(relativePath)
             }
         }
     }
@@ -128,9 +130,9 @@ class DocumentChangeListener(
 
     companion object {
         /** Tempo de inatividade após o qual um snapshot é gerado. Candidato a configurável na Fase 5. */
-        const val INACTIVITY_TIMEOUT_MS = 30_000L  // 30s
+        const val INACTIVITY_TIMEOUT_MS = 15_000L  // 15s
 
         /** Intervalo máximo entre snapshots durante digitação contínua. Candidato a configurável na Fase 5. */
-        const val MAX_INTERVAL_MS = 60_000L          // 60s
+        const val MAX_INTERVAL_MS = 30_000L          // 30s
     }
 }

@@ -89,16 +89,18 @@ Arquivo `src/model/Livro.java` salvo em `08/05/2026 15:06:19`:
 
 ---
 
-## D-005: Debounce de 1 Segundo
+## D-005: Debounce de 500ms
 
-**Data:** 2026-05-08  
+**Data:** 2026-05-08 | **Atualizado:** 2026-05-22  
 **Status:** ✅ Aprovada
 
 ### Contexto
 O IntelliJ tem auto-save agressivo (a cada ~15s, ao trocar aba, ao perder foco). Sem debounce, cada auto-save geraria um snapshot, causando flood.
 
 ### Decisão
-**Debounce de 1 segundo, hardcoded no MVP.** Se o mesmo arquivo for salvo múltiplas vezes dentro de 1 segundo, apenas o último save gera snapshot. Será tornado configurável na Fase 5.
+**Debounce de 500ms, hardcoded no MVP.** Se o mesmo arquivo for salvo múltiplas vezes dentro de 500ms, apenas o último save gera snapshot. Será tornado configurável na Fase 5.
+
+> Valor original: 1s. Reduzido à metade em 2026-05-22 para captura mais frequente em ambiente acadêmico.
 
 ---
 
@@ -188,10 +190,12 @@ O `DocumentSaveListener` (baseado em `FileDocumentManagerListener.beforeDocument
 ### Dual Debounce
 Um debounce simples de inatividade seria resetado indefinidamente durante digitação contínua, nunca gerando snapshots. A estratégia de dois timers resolve isso:
 
-- **Inactivity timer (30s):** reseta a cada keystroke → snapshot 30s após o último evento
-- **Max interval timer (60s):** inicia uma vez, não reseta → snapshot garantido durante typing contínuo
+- **Inactivity timer (15s):** reseta a cada keystroke → snapshot 15s após o último evento
+- **Max interval timer (30s):** inicia uma vez, não reseta → snapshot garantido durante typing contínuo
 
 Ambos os valores são candidatos a tornar-se configuráveis na Fase 5 (`LocalHistorySettings`).
+
+> Valores originais: 30s / 60s. Reduzidos à metade em 2026-05-22 para captura mais frequente em ambiente acadêmico.
 
 ### Coexistência com DocumentSaveListener
 Os dois listeners operam em paralelo. O `DocumentSaveListener` mantém a captura rápida (<2s) em saves explícitos. Sobreposições são eliminadas pela deduplicação SHA-256 existente no `SnapshotService.processSnapshot()`.

@@ -36,7 +36,7 @@ class SnapshotService(
     private val lastHashByPath = ConcurrentHashMap<String, String>()
 
     companion object {
-        private const val DEBOUNCE_DELAY_MS = 1_000L
+        private const val DEBOUNCE_DELAY_MS = 500L
 
         fun getInstance(project: Project): SnapshotService = project.service()
     }
