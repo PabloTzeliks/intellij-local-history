@@ -19,7 +19,7 @@ import com.intellij.openapi.wm.ToolWindowManager
 
 class CompareWithCurrentAction : AnAction(
     LocalHistoryBundle.messagePointer("action.compare"),
-    LocalHistoryBundle.messagePointer("action.compare"),
+    LocalHistoryBundle.messagePointer("action.compare.description"),
     com.intellij.icons.AllIcons.Actions.Diff
 ) {
 
