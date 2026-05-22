@@ -24,10 +24,8 @@
         keeping a local history of changes in a <code>.history</code> folder.</p>
         <p>Features:</p>
         <ul>
-            <li>Automatic snapshots on every file save</li>
+            <li>Automatic snapshots on every file save and during continuous editing</li>
             <li>Visual diff comparison with current version</li>
-            <li>One-click restore to any previous version</li>
-            <li>Configurable retention policy</li>
             <li>Compatible with VS Code Local History extension</li>
         </ul>
     ]]></description>
