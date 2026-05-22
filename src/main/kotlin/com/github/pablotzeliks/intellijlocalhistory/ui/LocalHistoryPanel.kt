@@ -175,8 +175,4 @@ class LocalHistoryPanel(
         }
     }
 
-    companion object {
-        // Formatter centralizado em DateFormats — removido daqui para evitar duplicidade.
-        // A referência é feita diretamente via DateFormats.DISPLAY_FORMATTER.
-    }
 }
