@@ -1,14 +1,12 @@
 package com.github.pablotzeliks.intellijlocalhistory.storage
 
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotRequest
+import com.github.pablotzeliks.intellijlocalhistory.util.DateFormats
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.format.DateTimeFormatter
 
 object SnapshotWriter {
-
-    private val TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
     /**
      * Escreve o conteúdo do [request] como um flat file em .history/.
@@ -23,7 +21,7 @@ object SnapshotWriter {
      *   → .history/src/model/Livro_20260508150619.java
      */
     fun write(request: SnapshotRequest) {
-        val timestamp = request.timestamp.format(TIMESTAMP_FORMAT)
+        val timestamp = request.timestamp.format(DateFormats.SNAPSHOT_TIMESTAMP_FORMAT)
         val snapshotFileName = "${request.fileName}_$timestamp${request.fileExtension}"
 
         // Diretório relativo sem o nome do arquivo (ex: "src/model")

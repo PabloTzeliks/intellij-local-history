@@ -7,6 +7,7 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,9 +36,19 @@ class SnapshotService(
     private val lastHashByPath = ConcurrentHashMap<String, String>()
 
     companion object {
-        private const val DEBOUNCE_DELAY_MS = 1_000L
+        private const val DEBOUNCE_DELAY_MS = 500L
 
         fun getInstance(project: Project): SnapshotService = project.service()
+    }
+
+    /**
+     * Captura imediatamente, sem debounce.
+     * Chamado pelo DocumentChangeListener após seu próprio debounce de inatividade/intervalo.
+     */
+    fun captureNow(request: SnapshotRequest) {
+        cs.launch(Dispatchers.IO) {
+            processSnapshot(request)
+        }
     }
 
     /**
@@ -89,7 +100,10 @@ class SnapshotService(
             project.service<GitignoreService>().ensureHistoryIgnored()
 
             thisLogger().info("Local History: snapshot saved for '${request.relativePath}'")
-            project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(request.relativePath)
+            val path = request.relativePath
+            ApplicationManager.getApplication().invokeLater {
+                project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(path)
+            }
         } catch (e: Exception) {
             thisLogger().warn("Local History: failed to write snapshot for '${request.relativePath}'", e)
         }

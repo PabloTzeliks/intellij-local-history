@@ -18,4 +18,8 @@ object DateFormats {
      */
     val DISPLAY_FORMATTER: DateTimeFormatter =
         DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+
+    /** Formato usado no nome dos arquivos de snapshot em disco. Compartilhado por SnapshotWriter e SnapshotReader. */
+    val SNAPSHOT_TIMESTAMP_FORMAT: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 }

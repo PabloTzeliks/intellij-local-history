@@ -18,6 +18,7 @@ import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.openapi.application.EDT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -102,25 +103,26 @@ class LocalHistoryPanel(
             return
         }
 
+        // VFS lookups on EDT — safe, avoids threading assertions in 2025.2+
+        val projectDir = project.guessProjectDir()
+        val relativePath = projectDir?.let { VfsUtilCore.getRelativePath(virtualFile, it) }
+
+        if (projectDir == null || relativePath == null) {
+            listModel.clear()
+            snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
+            return
+        }
+
+        val basePath = projectDir.path
+
         snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.loading")
         listModel.clear()
 
         loadingJob = cs.launch(Dispatchers.IO) {
-            val projectDir = project.guessProjectDir()
-            val relativePath = projectDir?.let { VfsUtilCore.getRelativePath(virtualFile, it) }
-
-            if (projectDir == null || relativePath == null) {
-                withContext(Dispatchers.Main) {
-                    listModel.clear()
-                    snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
-                }
-                return@launch
-            }
-
-            val entries = SnapshotReader.listSnapshots(relativePath, projectDir.path)
+            val entries = SnapshotReader.listSnapshots(relativePath, basePath)
             // TODO: Phase 5 — limitar número de entradas com base em LocalHistorySettings
 
-            withContext(Dispatchers.Main) {
+            withContext(Dispatchers.EDT) {
                 listModel.clear()
                 if (entries.isEmpty()) {
                     snapshotList.emptyText.text = LocalHistoryBundle.message("toolWindow.empty")
@@ -173,8 +175,4 @@ class LocalHistoryPanel(
         }
     }
 
-    companion object {
-        // Formatter centralizado em DateFormats — removido daqui para evitar duplicidade.
-        // A referência é feita diretamente via DateFormats.DISPLAY_FORMATTER.
-    }
 }

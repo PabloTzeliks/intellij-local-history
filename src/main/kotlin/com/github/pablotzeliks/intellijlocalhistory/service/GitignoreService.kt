@@ -34,26 +34,29 @@ class GitignoreService(private val project: Project) {
 
         val projectDir = project.guessProjectDir() ?: return
 
-        WriteAction.runAndWait<Throwable> {
-            val gitignoreVFile = projectDir.findChild(".gitignore")
+        try {
+            WriteAction.runAndWait<Throwable> {
+                val gitignoreVFile = projectDir.findChild(".gitignore")
 
-            if (gitignoreVFile == null) {
-                // Cria .gitignore com a entrada
-                val newFile = projectDir.createChildData(this, ".gitignore")
-                VfsUtil.saveText(newFile, "$HISTORY_ENTRY\n")
-                thisLogger().info("Local History: .gitignore created with $HISTORY_ENTRY")
-            } else {
-                val current = VfsUtil.loadText(gitignoreVFile)
-                if (!current.lines().any { it.trim() == HISTORY_ENTRY.trim() }) {
-                    val separator = if (current.endsWith("\n")) "" else "\n"
-                    VfsUtil.saveText(gitignoreVFile, "$current$separator$HISTORY_ENTRY\n")
-                    thisLogger().info("Local History: .gitignore updated with $HISTORY_ENTRY")
+                if (gitignoreVFile == null) {
+                    // Cria .gitignore com a entrada
+                    val newFile = projectDir.createChildData(this, ".gitignore")
+                    VfsUtil.saveText(newFile, "$HISTORY_ENTRY\n")
+                    thisLogger().info("Local History: .gitignore created with $HISTORY_ENTRY")
                 } else {
-                    thisLogger().debug("Local History: .gitignore already contains $HISTORY_ENTRY")
+                    val current = VfsUtil.loadText(gitignoreVFile)
+                    if (!current.lines().any { it.trim() == HISTORY_ENTRY.trim() }) {
+                        val separator = if (current.endsWith("\n")) "" else "\n"
+                        VfsUtil.saveText(gitignoreVFile, "$current$separator$HISTORY_ENTRY\n")
+                        thisLogger().info("Local History: .gitignore updated with $HISTORY_ENTRY")
+                    } else {
+                        thisLogger().debug("Local History: .gitignore already contains $HISTORY_ENTRY")
+                    }
                 }
             }
+        } catch (e: Exception) {
+            gitignoreEnsured.set(false)
+            thisLogger().warn("Local History: failed to update .gitignore", e)
         }
-
-        // gitignoreEnsured já foi setado atomicamente no início — não reatribuir aqui
     }
 }

@@ -24,10 +24,8 @@
         keeping a local history of changes in a <code>.history</code> folder.</p>
         <p>Features:</p>
         <ul>
-            <li>Automatic snapshots on every file save</li>
+            <li>Automatic snapshots on every file save and during continuous editing</li>
             <li>Visual diff comparison with current version</li>
-            <li>One-click restore to any previous version</li>
-            <li>Configurable retention policy</li>
             <li>Compatible with VS Code Local History extension</li>
         </ul>
     ]]></description>
@@ -59,6 +57,8 @@
         <!-- Fornece CoroutineScope gerenciado para os componentes de UI (Fase 3) -->
         <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryUiScopeService"/>
         
+        <projectActivity implementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryStartupActivity"/>
+
         <toolWindow id="Local History"
                     anchor="bottom"
                     secondary="false"

@@ -1,17 +1,15 @@
 package com.github.pablotzeliks.intellijlocalhistory.storage
 
 import com.github.pablotzeliks.intellijlocalhistory.model.SnapshotEntry
+import com.github.pablotzeliks.intellijlocalhistory.util.DateFormats
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 object SnapshotReader {
-
-    private val TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
     /**
      * Lista todos os snapshots do arquivo [relativePath] em ordem decrescente
@@ -71,7 +69,7 @@ object SnapshotReader {
             // Ex: "Livro_20260508150619.java" → "20260508150619"
             val nameWithoutExt = file.nameWithoutExtension
             val timestampStr = nameWithoutExt.takeLast(14)
-            val timestamp = LocalDateTime.parse(timestampStr, TIMESTAMP_FORMAT)
+            val timestamp = LocalDateTime.parse(timestampStr, DateFormats.SNAPSHOT_TIMESTAMP_FORMAT)
             SnapshotEntry(file = file, timestamp = timestamp, originalRelativePath = originalRelativePath)
         } catch (_: DateTimeParseException) {
             null  // arquivo com nome inválido é ignorado silenciosamente
