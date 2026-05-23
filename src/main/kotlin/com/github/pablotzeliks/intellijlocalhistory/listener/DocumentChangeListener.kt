@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap
  * Registrado via EditorFactory.eventMulticaster em LocalHistoryStartupActivity —
  * atua em todos os documentos do projeto e é removido automaticamente ao fechar o projeto.
  *
- * Complementa o DocumentSaveListener (que captura em saves explícitos com debounce de 1s).
+ * Complementa o DocumentSaveListener, que captura snapshots em saves explícitos usando o debounce configurado no SnapshotService.
  * A deduplicação SHA-256 no SnapshotService descarta sobreposições entre os dois listeners.
  */
 class DocumentChangeListener(
