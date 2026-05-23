@@ -57,7 +57,7 @@
         <!-- Fornece CoroutineScope gerenciado para os componentes de UI (Fase 3) -->
         <projectService serviceImplementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryUiScopeService"/>
         
-        <postStartupActivity implementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryStartupActivity"/>
+        <projectActivity implementation="com.github.pablotzeliks.intellijlocalhistory.service.LocalHistoryStartupActivity"/>
 
         <toolWindow id="Local History"
                     anchor="bottom"
