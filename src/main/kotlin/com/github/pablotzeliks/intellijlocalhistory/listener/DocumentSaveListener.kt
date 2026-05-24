@@ -34,8 +34,9 @@ class DocumentSaveListener : FileDocumentManagerListener {
         // 4. Filtros: binário? muito grande? diretório excluído?
         if (!FileFilters.shouldCapture(file, projectDir.path)) return
 
-        // 5. Filtro adicional de tamanho em memória (impede congelamento da EDT ao ler document.text gigante)
+        // 5. Filtros sobre o conteúdo em memória (document, não o arquivo em disco)
         if (document.textLength > FileFilters.MAX_FILE_SIZE) return
+        if (document.textLength == 0) return
 
         // 6. Montar o SnapshotRequest com os dados necessários
         val relativePath = VfsUtilCore.getRelativePath(file, projectDir) ?: return

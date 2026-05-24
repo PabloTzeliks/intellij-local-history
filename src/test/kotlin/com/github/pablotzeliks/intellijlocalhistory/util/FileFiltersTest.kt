@@ -47,11 +47,12 @@ class FileFiltersTest : BasePlatformTestCase() {
 
     fun testShouldRejectFilesLargerThan2MB() {
         val projectPath = "/fake/project"
-        
+
         val largeFile = object : LightVirtualFile("LargeFile.txt") {
             override fun getPath(): String = "/fake/project/LargeFile.txt"
             override fun getLength(): Long = (2 * 1024 * 1024) + 1L
         }
         assertFalse(FileFilters.shouldCapture(largeFile, projectPath))
     }
+
 }
