@@ -40,6 +40,7 @@ class SnapshotService(
 
     /**
      * Mutex por relativePath — garante atomicidade da sequência check→write→update (FIX-001).
+     * Populado via computeIfAbsent (atômico) para garantir instância única por chave sob concorrência.
      * Cresce com o número de arquivos distintos processados na sessão: bounded pelo tamanho
      * do projeto e liberado junto com o escopo do serviço ao fechar o projeto.
      */
@@ -81,7 +82,7 @@ class SnapshotService(
     }
 
     private suspend fun processSnapshot(request: SnapshotRequest) {
-        val mutex = mutexByPath.getOrPut(request.relativePath) { Mutex() }
+        val mutex = mutexByPath.computeIfAbsent(request.relativePath) { Mutex() }
         mutex.withLock {
             val newHash = sha256(request.content)
 
