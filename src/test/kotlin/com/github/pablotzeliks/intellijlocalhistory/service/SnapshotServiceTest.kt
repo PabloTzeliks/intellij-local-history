@@ -17,9 +17,9 @@ class SnapshotServiceTest : BasePlatformTestCase() {
         super.setUp()
         val historyDir = Path.of(project.basePath!!, ".history")
         if (Files.exists(historyDir)) {
-            Files.walk(historyDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach(Files::delete)
+            Files.walk(historyDir).use { stream ->
+                stream.sorted(Comparator.reverseOrder()).forEach(Files::delete)
+            }
         }
     }
 
@@ -32,7 +32,8 @@ class SnapshotServiceTest : BasePlatformTestCase() {
     ) = SnapshotRequest(
         relativePath = relativePath,
         fileName = relativePath.substringAfterLast('/').substringBeforeLast('.'),
-        fileExtension = ".${relativePath.substringAfterLast('.')}",
+        fileExtension = relativePath.substringAfterLast('.', missingDelimiterValue = "")
+            .let { if (it.isNotEmpty() && it != relativePath) ".$it" else "" },
         content = content,
         timestamp = timestamp,
         projectBasePath = basePath()
