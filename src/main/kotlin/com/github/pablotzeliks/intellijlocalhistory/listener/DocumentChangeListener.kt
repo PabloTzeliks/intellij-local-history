@@ -50,6 +50,7 @@ class DocumentChangeListener(
 
         val document = event.document
         if (document.textLength > FileFilters.MAX_FILE_SIZE) return
+        if (document.textLength == 0) return
 
         val file = FileDocumentManager.getInstance().getFile(document) ?: return
         if (!file.isValid) return
