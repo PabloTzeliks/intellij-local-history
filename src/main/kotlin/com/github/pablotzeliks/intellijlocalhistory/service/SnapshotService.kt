@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.application.ApplicationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -117,6 +118,7 @@ class SnapshotService(
                     project.messageBus.syncPublisher(SnapshotListener.TOPIC).onSnapshotAdded(path)
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 thisLogger().warn("Local History: failed to write snapshot for '${request.relativePath}'", e)
             }
         }
