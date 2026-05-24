@@ -111,7 +111,7 @@ class SnapshotService(
 
     private fun sha256(content: String): String {
         val digest = MessageDigest.getInstance("SHA-256")
-        val bytes = digest.digest(content.toByteArray(Charsets.UTF_8))
+        val bytes = digest.digest(content.replace("\r\n", "\n").toByteArray(Charsets.UTF_8))
         return bytes.joinToString("") { "%02x".format(it) }
     }
 }
