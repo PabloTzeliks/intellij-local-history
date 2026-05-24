@@ -52,7 +52,7 @@ class SnapshotService(
     }
 
     /**
-     * Enfileira um snapshot para o [request] dado, com debounce de 1 segundo.
+     * Enfileira um snapshot para o [request] dado, com debounce de 500ms.
      * Chamado na EDT pelo DocumentSaveListener — retorna imediatamente.
      */
     fun enqueue(request: SnapshotRequest) {
